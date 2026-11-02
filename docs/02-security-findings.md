@@ -14,6 +14,7 @@ This document presents categorized findings derived from the passive backend ins
 | **SEC-04** | Security | **Medium** | Overly Permissive Wildcard CORS on Document Requests | Uncontrolled origin data sharing |
 | **SEC-05** | Security | **Low** | Framework & Infrastructure Fingerprint Disclosure | Reconnaissance facilitation for attackers |
 | **SEC-06** | Security | **High** | Unprotected Server Actions & Lack of Edge Rate Limiting | Resource exhaustion / automated spam |
+| **SEC-07** | Security | **Medium** | Sensitive Internal Route Disclosure via `robots.txt` (`/admin/`, `/portal/`) | Attack surface mapping & administrative targeting |
 | **PERF-01** | Performance | **High** | Cross-Continental Edge-Origin Function Latency | High TTFB (~1,300ms) for Indian users |
 | **PERF-02** | Performance | **Medium** | Apex Domain Employs HTTP 307 Temporary Redirect | Non-cached roundtrip latency on apex visits |
 | **PERF-03** | Performance | **Low** | Suboptimal Client-Side Caching Headers | Unnecessary origin/CDN revalidation |
@@ -105,6 +106,26 @@ This document presents categorized findings derived from the passive backend ins
   3. Denying service to legitimate applicants.
 - **Remediation**:
   Implement a `safeAction` middleware pattern that enforces sliding-window IP/token rate limiting (e.g., Upstash / Redis), schema validation (Zod), and strict origin header verification.
+
+---
+
+### SEC-07: Sensitive Internal Route Disclosure via `robots.txt`
+- **Severity**: **Medium** (CVSS: 5.3)
+- **Observable Evidence**:
+  ```http
+  GET https://www.cynbit.in/robots.txt HTTP/1.1
+  
+  User-agent: *
+  Allow: /
+  Sitemap: https://cynbit.in/sitemap.xml
+  Crawl-delay: 1
+  Disallow: /api/
+  Disallow: /admin/
+  Disallow: /portal/
+  ```
+- **Impact**: Disallowing `/admin/` and `/portal/` in a public `robots.txt` explicitly informs automated crawlers, malicious reconnaissance engines, and threat actors that administrative and internal management endpoints exist at those paths. Search crawlers obey `robots.txt`, but adversaries deliberately target paths listed in `Disallow`.
+- **Remediation**:
+  Remove private/admin route listings from public `robots.txt`. Enforce Zero Trust authentication, IP allowlisting (Cloudflare Access / Vercel Edge Middleware), and multi-factor authentication (MFA) on `/admin/*` and `/portal/*` routes. Emit `X-Robots-Tag: noindex, nofollow` HTTP headers from the protected endpoints themselves.
 
 ---
 
