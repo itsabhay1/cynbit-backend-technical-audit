@@ -32,7 +32,7 @@ sequenceDiagram
     Note over Client, EdgePoP: Step 8-9: Apex Redirection Hop
     Client->>EdgePoP: 8. GET / HTTP/2 (Host: cynbit.in)
     EdgePoP-->>Client: 9. HTTP 307 Temporary Redirect (Location: https://www.cynbit.in/)
-    Client->>EdgePoP: 10. GET /candidate/cmvxlxwlp000208l7tz276p4e HTTP/2 (Host: www.cynbit.in)
+    Client->>EdgePoP: 10. GET /candidate/<token> HTTP/2 (Host: www.cynbit.in)
 
     Note over EdgePoP, OriginCompute: Step 11-13: Edge Cache Evaluation & Trans-Oceanic Hop
     EdgePoP->>EdgePoP: 11. Edge Middleware execution & Cache Check -> MISS (dynamic route)
@@ -69,7 +69,7 @@ sequenceDiagram
    - *Architectural Flaw*: Because it is a `307` and not a `308 Permanent Redirect`, browsers do not cache the transition in their internal HSTS/redirect caches, incurring this penalty on every raw visit.
 
 ### Phase 4: Dynamic Segment Routing & The Trans-Oceanic Penalty (Steps 10–13)
-8. **Subdomain Request**: Client initiates `GET /candidate/cmvxlxwlp000208l7tz276p4e`.
+8. **Subdomain Request**: Client initiates `GET /candidate/<token>`.
 9. **Edge Cache Lookup**: Vercel Edge inspects cache headers. Segment `[token]` is classified dynamic (`Cache-Control: private, no-cache, no-store`). Cache emits **MISS**.
 10. **The Mumbai-to-Virginia Hop (`bom1::iad1`)**:
     - The Mumbai Edge node (`bom1`) opens a backhaul TCP/TLS socket across underwater fiber cables to AWS `us-east-1` (North Virginia / Washington D.C., `iad1`).

@@ -1,160 +1,113 @@
-# Cynbit Backend Technical Audit & Architectural Remediation
+# Cynbit - Backend Technical Audit & Architecture Review
 
-[![Audit Status](https://img.shields.io/badge/Audit-Completed-success)](#)
-[![Candidate](https://img.shields.io/badge/Candidate-Abhay%20Agrawal-blue)](#)
-[![Role](https://img.shields.io/badge/Role-Backend%20Developer%20Intern-blueviolet)](#)
-[![Target](https://img.shields.io/badge/Target-cynbit.in-orange)](#)
-[![Methodology](https://img.shields.io/badge/Methodology-100%25%20Passive%20Testing-brightgreen)](#)
-
-This repository contains a comprehensive **Backend Technical Audit, Security & Performance Review, and Architectural Improvement Plan** for **Cynbit Technologies** (`https://cynbit.in`).
-
-Conducted and prepared by **Abhay Agrawal** (`agabhay07@gmail.com`).
+**Candidate**: Abhay Agrawal  
+**Contact**: agabhay07@gmail.com  
+**Role Target**: Backend Developer Intern  
 
 ---
 
-## 📌 Submission Overview
+## Overview
 
-| Parameter | Details |
-| :--- | :--- |
-| **Applicant** | Abhay Agrawal |
-| **Candidate Portal** | [Dedicated Candidate Assessment Portal](https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e) |
-| **Applicant Token** | `cmvxlxwlp000208l7tz276p4e` (Prisma CUID) |
-| **Target Infrastructure** | `https://cynbit.in` & `https://www.cynbit.in` |
-| **Testing Scope** | Strictly passive and authorized HTTP inspection (no disruption, brute forcing, or unauthorized access) |
+For this assessment, I conducted an external, passive backend audit of Cynbit's platform (`cynbit.in` and `www.cynbit.in`). Rather than speculating or giving generic advice, I captured live HTTP headers, DNS records, and network telemetry to see how the platform actually behaves in production.
+
+This repository contains my breakdown of what's working well, where the latency and security gaps are, and production-ready TypeScript code showing how I would fix them.
 
 ---
 
-## 🧭 Navigation & Core Deliverables
+## Key Findings at a Glance
 
-| Deliverable | Document / Source | Description |
-| :--- | :--- | :--- |
-| **Deliverable 1: Backend Technical Audit** | [docs/01-technical-audit.md](docs/01-technical-audit.md) | In-depth analysis of observable backend behavior, Next.js App Router RSC, Server Actions RPC, and Vercel edge telemetry. |
-| **Deliverable 2: Security & Performance** | [docs/02-security-findings.md](docs/02-security-findings.md) | Categorized findings: missing headers (CSP, X-Frame-Options), wildcard CORS, cross-region hops, and `robots.txt` route disclosure. |
-| **Deliverable 3: Recommended Improvements** | [docs/03-improvements-guide.md](docs/03-improvements-guide.md) & [src/](src/) | Production-grade architectural patterns and TypeScript reference implementations. |
-| **Deep Dive: Packet & System Lifecycle** | [docs/04-request-lifecycle.md](docs/04-request-lifecycle.md) | 17-step HTTPS request/response lifecycle: DNS Anycast, TCP/TLS handshakes, V8 worker execution, and trans-oceanic edge latency. |
-| **Whole-Platform Scope: Overview** | [docs/platform-audit/overview.md](docs/platform-audit/overview.md) | Platform routing topology, rendering modes, and whole-platform vulnerability matrix. |
-| **Whole-Platform Scope: `/services`** | [docs/platform-audit/services.md](docs/platform-audit/services.md) | Static generation, ISR on-demand caching, and Next.js image optimization security. |
-| **Whole-Platform Scope: `/careers`** | [docs/platform-audit/careers.md](docs/platform-audit/careers.md) | Resume ingestion, 4.5MB serverless body limits, direct-to-S3 presigned URLs, and magic-byte checks. |
-| **Whole-Platform Scope: `/contact`** | [docs/platform-audit/contact.md](docs/platform-audit/contact.md) | Lead capture, synchronous notification bottlenecks, async event queues, and honeypot bot guards. |
-| **Whole-Platform Scope: `/bitelevate`** | [docs/platform-audit/bitelevate.md](docs/platform-audit/bitelevate.md) | High-concurrency cohort traffic, database connection pooling (PgBouncer), and Cashfree payment idempotency. |
+1. **Cross-Continental Edge-to-Origin Latency (`bom1` -> `iad1`)**  
+   While static marketing routes (`/services`, `/contact`) hit Vercel's Mumbai edge (`bom1`) in ~70–140ms, dynamic server-rendered routes (`/careers`, `/candidate/[token]`) trigger a serverless function running in US East (`iad1`). This causes a ~1,100ms–1,300ms Time-To-First-Byte (TTFB) for users in India.  
+   *Fix*: Pin the compute region to Mumbai (`bom1`) in `next.config.mjs`.
+
+2. **Missing Defense-in-Depth Headers**  
+   None of the standard hardening headers (`Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options: nosniff`) are set on responses. This leaves interactive forms open to clickjacking and script injection.
+
+3. **Wildcard CORS on HTML Pages**  
+   The server returns `access-control-allow-origin: *` even on full HTML page responses (`/`, `/services`, `/contact`), rather than scoping CORS to public JSON endpoints.
+
+4. **Internal Route Exposure in `robots.txt`**  
+   `robots.txt` disallows `/admin/` and `/portal/`. This inadvertently informs scrapers and attackers that admin panels exist at those exact paths.
+
+5. **Serverless Payload Bottleneck on `/careers`**  
+   Vercel serverless functions cap request bodies at 4.5MB. Direct resume uploads risk `413 Payload Too Large`.  
+   *Fix*: Use direct-to-S3/R2 presigned URLs with binary magic-byte validation.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 .
-├── README.md                                  # Executive summary, navigation, and key findings
-├── package.json                               # Project configuration & scripts
-├── tsconfig.json                              # Strict TypeScript compiler configuration
-├── .gitignore                                 # Git ignore patterns
-│
-├── docs/                                      # TECHNICAL AUDIT REPORTS & ARCHITECTURAL GUIDES
-│   ├── 01-technical-audit.md                  # [Deliverable 1] Core architecture, RSC, routing & edge telemetry
-│   ├── 02-security-findings.md                # [Deliverable 2] Categorized security vulnerabilities & headers
-│   ├── 03-improvements-guide.md               # [Deliverable 3] Recommended architectural solutions & code guide
-│   ├── 04-request-lifecycle.md                # Deep Dive: 17-step packet-level HTTPS request/response lifecycle
+├── docs/
+│   ├── 01-technical-audit.md          # Core architecture, RSC streams & edge telemetry
+│   ├── 02-security-findings.md        # Categorized security issues with CVSS ratings
+│   ├── 03-improvements-guide.md       # Target system architecture and sequence diagrams
+│   ├── 04-request-lifecycle.md        # 17-step packet-level trace (DNS to client hydration)
 │   │
-│   └── platform-audit/                        # DEDICATED WHOLE-PLATFORM ROUTE AUDITS
-│       ├── overview.md                        # Platform topology & route overview
-│       ├── services.md                        # /services — Caching & edge delivery
-│       ├── careers.md                         # /careers — Resume uploads & 4.5MB serverless limit
-│       ├── contact.md                         # /contact — Lead capture & async webhook queues
-│       └── bitelevate.md                      # /bitelevate — High-concurrency funnel & DB pooling
+│   └── platform-audit/                # Route-by-route deep dives
+│       ├── overview.md                # Platform route matrix & rendering strategies
+│       ├── services.md                # /services — Caching & image optimization
+│       ├── careers.md                 # /careers — Resume ingestion & 4.5MB limits
+│       ├── contact.md                 # /contact — Lead capture, queues & honeypots
+│       └── bitelevate.md              # /bitelevate — Cohort concurrency & DB pooling
 │
-├── src/                                       # PRODUCTION-GRADE BACKEND IMPLEMENTATIONS
+├── src/                               # Working implementations
 │   ├── config/
-│   │   ├── next.config.mjs                    # Production-hardened Next.js security, regions & redirects
-│   │   └── security-headers.ts                # OWASP CSP, frame-ancestors, nosniff configurations
+│   │   ├── next.config.mjs            # Hardened Next.js configuration (bom1 pinning, 308 redirect)
+│   │   └── security-headers.ts        # CSP, HSTS, frame-ancestors definitions
 │   ├── middleware/
-│   │   ├── rateLimiter.ts                     # Distributed sliding-window rate limiter (Redis / Memory)
-│   │   └── securityHeaders.ts                 # High-security HTTP response header injection
-│   ├── middleware.ts                          # Next.js Edge middleware (CSP nonces, CORS isolation)
+│   │   ├── rateLimiter.ts             # Sliding-window rate limiter
+│   │   └── securityHeaders.ts         # Header injection middleware
+│   ├── middleware.ts                  # Edge middleware (CSP nonces, origin validation)
 │   ├── schemas/
-│   │   ├── candidateSubmission.ts             # Resilient Zod validation & candidate token schemas
-│   │   └── contactLeadSchema.ts               # Ingestion schema for /contact & /bitelevate with honeypot bot defense
+│   │   ├── candidateSubmission.ts     # Zod validation for candidate submissions
+│   │   └── contactLeadSchema.ts       # Lead capture schema with honeypot bot trap
 │   ├── services/
-│   │   ├── candidateService.ts                # Atomic, race-condition safe Prisma candidate submission handler
-│   │   ├── resumeUploadService.ts             # S3/R2 presigned upload pipeline & magic-byte check for /careers
-│   │   └── paymentService.ts                  # Cashfree payment initiation & webhook idempotency
-│   ├── server/
-│   │   ├── actions/
-│   │   │   ├── candidate-actions.ts           # Safe Server Actions (hydration, assessment submission)
-│   │   │   └── payment-actions.ts             # Cashfree order creation & verification
-│   │   └── lib/
-│   │       ├── rate-limiter.ts                # Token-bucket sliding window rate limiter
-│   │       ├── safe-action.ts                 # Reusable Safe Action wrapper with Zod parsing
-│   │       └── cashfree-webhook.ts            # Resilient HMAC-SHA256 signature verification
+│   │   ├── candidateService.ts        # Atomic submission handler with optimistic locking
+│   │   ├── resumeUploadService.ts     # S3/R2 presigned URL generator & magic-byte check
+│   │   └── paymentService.ts          # Cashfree webhook handler with HMAC verification
 │   └── utils/
-│       ├── errorHandling.ts                   # RFC 7807 Problem Details standardized API error serializer
-│       ├── healthCheck.ts                     # Liveness/Readiness probe (/api/healthz) with DB & Cache telemetry
-│       └── idempotency.ts                     # Network-retry safe Idempotency-Key handler
+│       ├── errorHandling.ts           # RFC 7807 Problem Details error responses
+│       ├── healthCheck.ts             # Health check probe (/api/healthz)
+│       └── idempotency.ts             # Idempotency key manager
 │
 ├── scripts/
-│   └── passive_audit.py                       # Reproducible passive telemetry audit CLI tool (Python)
+│   └── passive_audit.py               # Python passive telemetry script
 └── tools/
-    └── passive-audit-collector.mjs            # Standalone zero-dependency passive audit collector (Node.js)
+    └── passive-audit-collector.mjs    # Node.js passive telemetry script
 ```
 
 ---
 
-## 🔍 Observable Telemetry Snapshot
+## How to Run the Telemetry Probes
 
-Empirical baseline captured via `python scripts/passive_audit.py` and `node tools/passive-audit-collector.mjs`:
+Both scripts make standard, read-only GET/HEAD requests to public URLs. No penetration tools or flooding are used.
 
-```mermaid
-flowchart LR
-    Browser["Client Browser (India)"]
-    Anycast["Vercel Anycast Edge (bom1 - Mumbai)"]
-    EdgeHit["Static Hits: 72ms - 146ms TTFB\n(/, /services, /contact, /bitelevate)"]
-    OriginHop["Origin Lambda: 1,103ms - 1,320ms TTFB\n(/careers, /candidate/[token]) in iad1 (Virginia)"]
-
-    Browser -->|cynbit.in / www.cynbit.in| Anycast
-    Anycast -->|Edge Cache HIT| EdgeHit
-    Anycast -->|Dynamic MISS (14,000km hop)| OriginHop
-```
-
-### 1. Static Root (`https://www.cynbit.in/`)
-- **Server / Edge**: Vercel Edge (`server: Vercel`, `x-vercel-cache: HIT`, `bom1` Mumbai)
-- **Routing Engine**: Next.js App Router (`vary: rsc, next-router-state-tree...`, `x-nextjs-prerender: 1`)
-- **Anomaly**: Wildcard `access-control-allow-origin: *` returned on HTML document.
-
-### 2. Dynamic Routes (`/careers` & `/candidate/[token]`)
-- **Routing Path**: `bom1::iad1` (Mumbai Edge $\rightarrow$ US East Virginia Serverless Compute)
-- **Latency Impact**: Dynamic TTFB spikes to **1,103ms – 1,320ms** due to avoidable trans-oceanic network transit.
-- **Framework Disclosure**: `x-powered-by: Next.js` explicitly exposed.
-- **Cache Policy**: Correctly set to `private, no-cache, no-store, max-age=0, must-revalidate`.
-
-### 3. Route Disclosure in `robots.txt`
-- Publicly exposes sensitive internal administration routes:
-  ```text
-  Disallow: /api/
-  Disallow: /admin/
-  Disallow: /portal/
-  ```
-
----
-
-## 🛠️ Testing the Implementation
-
-Both Python and Node.js diagnostic tools are provided to reproduce telemetry:
-
+### Option A: Python (Standard Library only)
 ```bash
-# Clone the repository
-git clone https://github.com/itsabhay1/cynbit-backend-technical-audit.git
-cd cynbit-backend-technical-audit
-
-# 1. Run passive telemetry audit using Python
 python scripts/passive_audit.py
+```
 
-# 2. Run passive telemetry audit using Node.js
+### Option B: Node.js (Zero dependencies)
+```bash
 node tools/passive-audit-collector.mjs
 ```
 
+Both scripts inspect public HTTP response headers, TTFB, DNS resolution, and cache status across all main routes.
+
 ---
 
-## ⚖️ Ethics & Compliance Disclaimer
+## Notes on Implementation Code (`src/`)
 
-This audit was conducted in strict compliance with Cynbit's assessment instructions:
-*"Only passive and authorized testing is permitted. Do not attempt to exploit, disrupt, overload, or gain unauthorized access to any Cynbit system."*  
-All data was gathered exclusively through standard read-only HTTP GET/HEAD requests and public DNS records.
+- **Edge Security Middleware** (`src/middleware.ts`): Attaches CSP nonces, isolates CORS, and validates Server Action origins to stop CSRF.
+- **Compute Colocation** (`src/config/next.config.mjs`): Directs serverless execution to Mumbai (`bom1`) to drop cross-continental transit from ~210ms to under 5ms.
+- **Direct S3 Uploads** (`src/services/resumeUploadService.ts`): Bypasses the 4.5MB serverless body limit so applicants can upload large PDFs safely.
+- **Payment Idempotency** (`src/services/paymentService.ts`): Verifies Cashfree HMAC-SHA256 signatures and guards against duplicate webhook deliveries.
+- **Standardized Error Formatting** (`src/utils/errorHandling.ts`): Implements RFC 7807 Problem Details for clean, consistent API errors.
+
+---
+
+## Compliance Notice
+
+This audit was conducted strictly passively in accordance with the assessment instructions. Only publicly visible HTTP headers and response metadata were observed. No vulnerability scanners, fuzzers, load generators, or intrusive testing techniques were utilized.

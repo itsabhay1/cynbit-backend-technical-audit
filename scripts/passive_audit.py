@@ -13,11 +13,14 @@ import socket
 import urllib.request
 import urllib.error
 import ssl
+import os
+
+candidate_token = os.environ.get("CANDIDATE_TOKEN", "sample_candidate_token")
 
 TARGETS = [
     {"label": "Apex Domain (Redirect Check)", "url": "https://cynbit.in"},
     {"label": "Canonical Web Domain (Landing Page)", "url": "https://www.cynbit.in/"},
-    {"label": "Dynamic SSR Candidate Assessment Portal", "url": "https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e"},
+    {"label": "Dynamic SSR Candidate Assessment Portal", "url": f"https://www.cynbit.in/candidate/{candidate_token}"},
     {"label": "Careers (Dynamic SSR Page)", "url": "https://www.cynbit.in/careers"},
     {"label": "Services (Marketing Page)", "url": "https://www.cynbit.in/services"},
     {"label": "Contact Page (Lead Capture)", "url": "https://www.cynbit.in/contact"},

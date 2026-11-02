@@ -11,10 +11,12 @@
 import https from 'node:https';
 import dns from 'node:dns/promises';
 
+const candidateToken = process.env.CANDIDATE_TOKEN || 'sample_candidate_token';
+
 const TARGETS = [
   { label: 'Apex Domain (Redirect Check)', url: 'https://cynbit.in' },
   { label: 'Canonical Web Domain (Landing Page)', url: 'https://www.cynbit.in/' },
-  { label: 'Dynamic SSR Candidate Assessment Portal', url: 'https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e' },
+  { label: 'Dynamic SSR Candidate Assessment Portal', url: `https://www.cynbit.in/candidate/${candidateToken}` },
   { label: 'Careers (Dynamic SSR Page)', url: 'https://www.cynbit.in/careers' },
   { label: 'Contact Page (Static/ISR Page)', url: 'https://www.cynbit.in/contact' },
   { label: 'BitElevate Educational Page', url: 'https://www.cynbit.in/bitelevate' },

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * CUID validation regex matching Prisma default CUID format (e.g., cmvxlxwlp000208l7tz276p4e)
+ * CUID validation regex matching Prisma default CUID format (e.g., cjld2cjxh0000qzrmn831i7rn)
  */
 export const cuidSchema = z
   .string()

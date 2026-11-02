@@ -28,7 +28,7 @@ This document presents categorized findings derived from the passive backend ins
 - **Severity**: **Medium** (CVSS: 5.4)
 - **Observable Evidence**:
   ```http
-  GET /candidate/cmvxlxwlp000208l7tz276p4e HTTP/1.1
+  GET /candidate/<token> HTTP/1.1
   Host: www.cynbit.in
   
   HTTP/1.1 200 OK
@@ -80,7 +80,7 @@ This document presents categorized findings derived from the passive backend ins
 - **Severity**: **Low** (CVSS: 2.6)
 - **Observable Evidence**:
   ```http
-  GET https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e HTTP/1.1
+  GET https://www.cynbit.in/candidate/<token> HTTP/1.1
   
   HTTP/1.1 200 OK
   Server: Vercel
@@ -182,7 +182,7 @@ This document presents categorized findings derived from the passive backend ins
 ### DATA-01: Soft 404 / 200 OK Status on Non-Existent Candidate Tokens
 - **Severity**: **Low**
 - **Observable Evidence**:
-  - `GET /candidate/cmvxlxwlp000208l7tz276p4e` $\rightarrow$ `HTTP 200 OK` (Valid CUID)
+  - `GET /candidate/<token>` $\rightarrow$ `HTTP 200 OK` (Valid CUID)
   - `GET /candidate/doesnotexist` $\rightarrow$ `HTTP 200 OK` (Invalid CUID)
   - `GET /candidate/cmv0000000000000000000000` $\rightarrow$ `HTTP 200 OK` (Synthetic CUID)
 - **Impact**: Rendering the page shell with `200 OK` for invalid tokens is an anti-pattern. Search engines index empty/broken candidate pages, and API consumers cannot programmatically detect token invalidity through standard HTTP status semantics.

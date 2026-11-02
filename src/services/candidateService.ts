@@ -18,10 +18,10 @@ export interface CandidateRecord {
 export class CandidateService {
   private candidates = new Map<string, CandidateRecord>([
     [
-      'cmvxlxwlp000208l7tz276p4e',
+      'mock_candidate_token',
       {
-        id: 'cuid_cmvxlxwlp000208',
-        token: 'cmvxlxwlp000208l7tz276p4e',
+        id: 'cuid_mock_candidate_001',
+        token: 'mock_candidate_token',
         name: 'Abhay Agrawal',
         email: 'agabhay07@gmail.com',
         status: 'PENDING',

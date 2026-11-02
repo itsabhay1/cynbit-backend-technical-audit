@@ -28,13 +28,13 @@ interface CandidateRecord {
 // In-memory simulation of Prisma Candidate Table
 const mockDb = new Map<string, CandidateRecord>([
   [
-    'cmvxlxwlp000208l7tz276p4e',
+    'mock_candidate_token',
     {
-      id: 'usr_cmvxlxwlp000208',
+      id: 'usr_mock_candidate_001',
       name: 'Abhay Agrawal',
       email: 'agabhay07@gmail.com',
       role: 'Backend Developer Intern',
-      token: 'cmvxlxwlp000208l7tz276p4e',
+      token: 'mock_candidate_token',
       assessmentTitle: 'Backend Developer Intern - Task — Analyze Cynbit From a Backend Perspective',
       status: 'PENDING',
     },

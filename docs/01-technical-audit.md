@@ -92,7 +92,7 @@ Contrary to standard RESTful APIs (`/api/v1/...`), the candidate assessment flow
 **Mechanism**:
 When invoking these actions, the browser issues a `POST` request to the current pathname with:
 ```http
-POST /candidate/cmvxlxwlp000208l7tz276p4e HTTP/1.1
+POST /candidate/<token> HTTP/1.1
 Content-Type: text/plain;charset=UTF-8
 Next-Action: 78de5071582a09a9b67d2d42a8aeda17e31bc0d611
 ```
@@ -104,9 +104,9 @@ Next-Action: 78de5071582a09a9b67d2d42a8aeda17e31bc0d611
 ### 3.1 CUID-Based Capability URLs
 The assessment portal URL follows the pattern:
 ```
-https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e
+https://www.cynbit.in/candidate/<token>
 ```
-- **Identifier Structure**: `cmvxlxwlp000208l7tz276p4e` is a 25-character **CUID / CUID2** (standard Prisma ORM default string ID).
+- **Identifier Structure**: The token follows the 25-character **CUID / CUID2** standard (default Prisma ORM ID starting with `c`).
 - **Capability URL Behavior**: The token in the URL acts as a bearer secret for the candidate’s assessment context.
 - **SSR Behavior on Invalid Tokens**: Requesting invalid tokens (`/candidate/doesnotexist` or `/candidate/cmv0000000000000000000000`) returns `HTTP 200 OK` rather than `404 Not Found`. The candidate verification occurs during client-side hydration via `fetchCandidateByCandidateToken`.
 
