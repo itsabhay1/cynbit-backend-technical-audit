@@ -6,7 +6,8 @@
 [![Target](https://img.shields.io/badge/Target-cynbit.in-orange)](#)
 [![Methodology](https://img.shields.io/badge/Methodology-100%25%20Passive%20Testing-brightgreen)](#)
 
-Technical assessment for the **Backend Developer Intern** application at **Cynbit Technologies**.  
+This repository contains a comprehensive **Backend Technical Audit, Security & Performance Review, and Architectural Improvement Plan** for **Cynbit Technologies** (`https://cynbit.in`).
+
 Conducted and prepared by **Abhay Agrawal** (`agabhay07@gmail.com`).
 
 ---
@@ -17,149 +18,143 @@ Conducted and prepared by **Abhay Agrawal** (`agabhay07@gmail.com`).
 | :--- | :--- |
 | **Applicant** | Abhay Agrawal |
 | **Candidate Portal** | [Dedicated Candidate Assessment Portal](https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e) |
-| **Token Identifier** | `cmvxlxwlp000208l7tz276p4e` (Prisma CUID) |
+| **Applicant Token** | `cmvxlxwlp000208l7tz276p4e` (Prisma CUID) |
 | **Target Infrastructure** | `https://cynbit.in` & `https://www.cynbit.in` |
-| **Testing Scope** | Strictly passive and authorized HTTP inspection (no exploitation, brute forcing, or disruption) |
+| **Testing Scope** | Strictly passive and authorized HTTP inspection (no disruption, brute forcing, or unauthorized access) |
 
 ---
 
-## 📑 Repository Structure & Deliverables
+## 🧭 Navigation & Core Deliverables
+
+| Deliverable | Document / Source | Description |
+| :--- | :--- | :--- |
+| **Deliverable 1: Backend Technical Audit** | [docs/01-technical-audit.md](docs/01-technical-audit.md) | In-depth analysis of observable backend behavior, Next.js App Router RSC, Server Actions RPC, and Vercel edge telemetry. |
+| **Deliverable 2: Security & Performance** | [docs/02-security-findings.md](docs/02-security-findings.md) | Categorized findings: missing headers (CSP, X-Frame-Options), wildcard CORS, cross-region hops, and `robots.txt` route disclosure. |
+| **Deliverable 3: Recommended Improvements** | [docs/03-improvements-guide.md](docs/03-improvements-guide.md) & [src/](src/) | Production-grade architectural patterns and TypeScript reference implementations. |
+| **Deep Dive: Packet & System Lifecycle** | [docs/04-request-lifecycle.md](docs/04-request-lifecycle.md) | 17-step HTTPS request/response lifecycle: DNS Anycast, TCP/TLS handshakes, V8 worker execution, and trans-oceanic edge latency. |
+| **Whole-Platform Scope: Overview** | [docs/platform-audit/overview.md](docs/platform-audit/overview.md) | Platform routing topology, rendering modes, and whole-platform vulnerability matrix. |
+| **Whole-Platform Scope: `/services`** | [docs/platform-audit/services.md](docs/platform-audit/services.md) | Static generation, ISR on-demand caching, and Next.js image optimization security. |
+| **Whole-Platform Scope: `/careers`** | [docs/platform-audit/careers.md](docs/platform-audit/careers.md) | Resume ingestion, 4.5MB serverless body limits, direct-to-S3 presigned URLs, and magic-byte checks. |
+| **Whole-Platform Scope: `/contact`** | [docs/platform-audit/contact.md](docs/platform-audit/contact.md) | Lead capture, synchronous notification bottlenecks, async event queues, and honeypot bot guards. |
+| **Whole-Platform Scope: `/bitelevate`** | [docs/platform-audit/bitelevate.md](docs/platform-audit/bitelevate.md) | High-concurrency cohort traffic, database connection pooling (PgBouncer), and Cashfree payment idempotency. |
+
+---
+
+## 📁 Repository Structure
 
 ```
-cynbit-backend-technical-audit/
-├── README.md                                  # Executive summary, methodology, and submission overview
+.
+├── README.md                                  # Executive summary, navigation, and key findings
+├── package.json                               # Project configuration & scripts
+├── tsconfig.json                              # Strict TypeScript compiler configuration
+├── .gitignore                                 # Git ignore patterns
 │
-├── docs/                                      # Core Assessment Deliverables
-│   ├── AUDIT_REPORT.md                        # Deliverable 1: Backend Technical Audit Report
-│   ├── SECURITY_PERFORMANCE_FINDINGS.md       # Deliverable 2: Categorized Security & Performance Findings
-│   └── ARCHITECTURAL_IMPROVEMENTS.md          # Deliverable 3: System Design & Remediation Proposals
+├── docs/                                      # TECHNICAL AUDIT REPORTS & ARCHITECTURAL GUIDES
+│   ├── 01-technical-audit.md                  # [Deliverable 1] Core architecture, RSC, routing & edge telemetry
+│   ├── 02-security-findings.md                # [Deliverable 2] Categorized security vulnerabilities & headers
+│   ├── 03-improvements-guide.md               # [Deliverable 3] Recommended architectural solutions & code guide
+│   ├── 04-request-lifecycle.md                # Deep Dive: 17-step packet-level HTTPS request/response lifecycle
+│   │
+│   └── platform-audit/                        # DEDICATED WHOLE-PLATFORM ROUTE AUDITS
+│       ├── overview.md                        # Platform topology & route overview
+│       ├── services.md                        # /services — Caching & edge delivery
+│       ├── careers.md                         # /careers — Resume uploads & 4.5MB serverless limit
+│       ├── contact.md                         # /contact — Lead capture & async webhook queues
+│       └── bitelevate.md                      # /bitelevate — High-concurrency funnel & DB pooling
 │
-├── tools/                                     # Diagnostic Automation
-│   └── passive-audit-collector.mjs            # Zero-dependency Node.js CLI to reproduce live audit findings
-│
-├── src/                                       # Production-Grade Remediation Code
+├── src/                                       # PRODUCTION-GRADE BACKEND IMPLEMENTATIONS
 │   ├── config/
-│   │   ├── next.config.mjs                    # Hardened Next.js configuration (HSTS, regions, redirects)
+│   │   ├── next.config.mjs                    # Production-hardened Next.js security, regions & redirects
 │   │   └── security-headers.ts                # OWASP CSP, frame-ancestors, nosniff configurations
-│   ├── middleware.ts                          # Edge middleware (dynamic CSP nonces, strict CORS, action origin guard)
-│   └── server/
-│       ├── lib/
-│       │   ├── rate-limiter.ts                # Token-bucket sliding window rate limiter
-│       │   ├── safe-action.ts                 # Type-safe, validated Server Action wrapper
-│       │   └── cashfree-webhook.ts            # HMAC-SHA256 signature verification & idempotent webhook processor
-│       ├── schemas/
-│       │   └── candidate.schema.ts            # Strict Zod schemas for candidate submissions & tickets
-│       └── actions/
-│           ├── candidate-actions.ts           # Secure Server Actions (hydration, assessment submission)
-│           └── payment-actions.ts             # Secure Cashfree order creation & verification
+│   ├── middleware/
+│   │   ├── rateLimiter.ts                     # Distributed sliding-window rate limiter (Redis / Memory)
+│   │   └── securityHeaders.ts                 # High-security HTTP response header injection
+│   ├── middleware.ts                          # Next.js Edge middleware (CSP nonces, CORS isolation)
+│   ├── schemas/
+│   │   ├── candidateSubmission.ts             # Resilient Zod validation & candidate token schemas
+│   │   └── contactLeadSchema.ts               # Ingestion schema for /contact & /bitelevate with honeypot bot defense
+│   ├── services/
+│   │   ├── candidateService.ts                # Atomic, race-condition safe Prisma candidate submission handler
+│   │   ├── resumeUploadService.ts             # S3/R2 presigned upload pipeline & magic-byte check for /careers
+│   │   └── paymentService.ts                  # Cashfree payment initiation & webhook idempotency
+│   ├── server/
+│   │   ├── actions/
+│   │   │   ├── candidate-actions.ts           # Safe Server Actions (hydration, assessment submission)
+│   │   │   └── payment-actions.ts             # Cashfree order creation & verification
+│   │   └── lib/
+│   │       ├── rate-limiter.ts                # Token-bucket sliding window rate limiter
+│   │       ├── safe-action.ts                 # Reusable Safe Action wrapper with Zod parsing
+│   │       └── cashfree-webhook.ts            # Resilient HMAC-SHA256 signature verification
+│   └── utils/
+│       ├── errorHandling.ts                   # RFC 7807 Problem Details standardized API error serializer
+│       ├── healthCheck.ts                     # Liveness/Readiness probe (/api/healthz) with DB & Cache telemetry
+│       └── idempotency.ts                     # Network-retry safe Idempotency-Key handler
 │
-├── package.json
-└── tsconfig.json
+├── scripts/
+│   └── passive_audit.py                       # Reproducible passive telemetry audit CLI tool (Python)
+└── tools/
+    └── passive-audit-collector.mjs            # Standalone zero-dependency passive audit collector (Node.js)
 ```
 
 ---
 
-## 🔬 Key Empirical Discoveries & Observables
+## 🔍 Observable Telemetry Snapshot
 
-Running our diagnostic probe tool (`tools/passive-audit-collector.mjs`) against Cynbit's live infrastructure revealed the following baseline signals:
+Empirical baseline captured via `python scripts/passive_audit.py` and `node tools/passive-audit-collector.mjs`:
 
 ```mermaid
 flowchart LR
     Browser["Client Browser (India)"]
     Anycast["Vercel Anycast Edge (bom1 - Mumbai)"]
-    EdgeHit["Static Hits (72ms TTFB)"]
-    OriginHop["Origin Lambda (iad1 - Virginia, USA)"]
-    LatencyIssue["Dynamic Routes (1,320ms TTFB)"]
+    EdgeHit["Static Hits: 72ms - 146ms TTFB\n(/, /services, /contact, /bitelevate)"]
+    OriginHop["Origin Lambda: 1,103ms - 1,320ms TTFB\n(/careers, /candidate/[token]) in iad1 (Virginia)"]
 
     Browser -->|cynbit.in / www.cynbit.in| Anycast
-    Anycast -->|/contact, /bitelevate| EdgeHit
-    Anycast -->|/careers, /candidate/...| OriginHop
-    OriginHop --> LatencyIssue
+    Anycast -->|Edge Cache HIT| EdgeHit
+    Anycast -->|Dynamic MISS (14,000km hop)| OriginHop
 ```
 
-### 1. Cross-Continental Function Routing (PERF-01)
-- Static pages like `/contact` resolve at Vercel's Mumbai edge (`bom1`) in **72ms TTFB**.
-- In contrast, dynamic Server Component routes like `/careers` and `/candidate/[token]` miss edge cache (`X-Vercel-Cache: MISS`) and invoke serverless Lambdas in `iad1` (US East - North Virginia), creating an **18x latency spike (1,320ms TTFB)**.
-- **Fix**: Co-locate Vercel serverless compute functions directly in Mumbai (`bom1`) via `regions: ["bom1"]`.
+### 1. Static Root (`https://www.cynbit.in/`)
+- **Server / Edge**: Vercel Edge (`server: Vercel`, `x-vercel-cache: HIT`, `bom1` Mumbai)
+- **Routing Engine**: Next.js App Router (`vary: rsc, next-router-state-tree...`, `x-nextjs-prerender: 1`)
+- **Anomaly**: Wildcard `access-control-allow-origin: *` returned on HTML document.
 
-### 2. Missing Defensive HTTP Headers (SEC-01, SEC-02, SEC-03)
-- No `Content-Security-Policy` (CSP) is configured across any endpoint.
-- No `X-Frame-Options` or `frame-ancestors` header is present, exposing candidate submission and payment screens to Clickjacking / UI Redressing.
-- No `X-Content-Type-Options: nosniff` header is present.
+### 2. Dynamic Routes (`/careers` & `/candidate/[token]`)
+- **Routing Path**: `bom1::iad1` (Mumbai Edge $\rightarrow$ US East Virginia Serverless Compute)
+- **Latency Impact**: Dynamic TTFB spikes to **1,103ms – 1,320ms** due to avoidable trans-oceanic network transit.
+- **Framework Disclosure**: `x-powered-by: Next.js` explicitly exposed.
+- **Cache Policy**: Correctly set to `private, no-cache, no-store, max-age=0, must-revalidate`.
 
-### 3. Overly Permissive CORS (SEC-04)
-- HTML document responses return `Access-Control-Allow-Origin: *` on marketing routes, permitting cross-origin applications to read rendered DOM trees.
-
-### 4. Direct Server Action RPC Surface (SEC-06)
-- The candidate portal relies on Next.js Server Actions (`createServerReference`) with exposed function hashes in client bundles:
-  - `submitCandidateAssessment`: Hash `78de5071582a09a9b67d2d42a8aeda17e31bc0d611`
-  - `fetchCandidateByCandidateToken`: Hash `40d60747a860583aa4a36582415eacc44769f593ef`
-  - `verifyCashfreePaymentStatus`: Hash `60dc214a3925addf79cd89074e45a9389962aaddbd`
-- **Fix**: Enforce origin guards in middleware and wrap all actions with schema validation (Zod) and token-bucket sliding-window rate limiters.
-
-### 5. Inefficient Apex Domain Redirection (PERF-02)
-- Visiting `https://cynbit.in` returns `HTTP 307 Temporary Redirect` rather than `HTTP 308 Permanent Redirect`, forcing repeated roundtrips.
+### 3. Route Disclosure in `robots.txt`
+- Publicly exposes sensitive internal administration routes:
+  ```text
+  Disallow: /api/
+  Disallow: /admin/
+  Disallow: /portal/
+  ```
 
 ---
 
-## 🚀 How to Reproduce Audit Telemetry
+## 🛠️ Testing the Implementation
 
-The repository includes a standalone, zero-dependency Node.js diagnostic script that passively probes Cynbit's public endpoints:
+Both Python and Node.js diagnostic tools are provided to reproduce telemetry:
 
 ```bash
 # Clone the repository
 git clone https://github.com/itsabhay1/cynbit-backend-technical-audit.git
 cd cynbit-backend-technical-audit
 
-# Run the passive audit collector (zero external dependencies required)
+# 1. Run passive telemetry audit using Python
+python scripts/passive_audit.py
+
+# 2. Run passive telemetry audit using Node.js
 node tools/passive-audit-collector.mjs
 ```
 
-Sample output:
-```text
-================================================================================
-CYNBIT TECHNOLOGIES - PASSIVE BACKEND OBSERVATION AUDIT
-================================================================================
-[1] DNS RESOLUTION & ANYCAST TOPOGRAPHY:
-  cynbit.in A Records: 216.198.79.1
-  www.cynbit.in CNAME Records: e12d688042344235.vercel-dns-017.com
-
---- [Target: Dynamic SSR Candidate Assessment Portal] ---
-URL: https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e
-  Status Code:       200
-  Roundtrip TTFB:    278ms
-  Server:            Vercel
-  Framework (Leaked):Next.js
-  Vercel Edge Node:  bom1::iad1::...
-  Vercel Cache:      MISS
-  CSP:               MISSING (Security Risk)
-  X-Frame-Options:   MISSING (Clickjacking Risk)
-
---- [Target: Careers (Dynamic SSR Page)] ---
-URL: https://www.cynbit.in/careers
-  Status Code:       200
-  Roundtrip TTFB:    1320ms
-  Vercel Edge Node:  bom1::iad1::...
-```
-
 ---
 
-## 🛠️ Summary of Recommended Improvements
+## ⚖️ Ethics & Compliance Disclaimer
 
-Detailed technical writeups and code solutions are provided in the repository:
-
-1. **[Comprehensive Audit Report](docs/AUDIT_REPORT.md)**: In-depth technical breakdown of routing, telemetry, and architecture.
-2. **[Categorized Findings](docs/SECURITY_PERFORMANCE_FINDINGS.md)**: CVSS-scored breakdown of security and performance risks.
-3. **[Architectural Proposals](docs/ARCHITECTURAL_IMPROVEMENTS.md)**: Detailed system design and sequence diagrams.
-4. **[Hardened Next.js Configuration](src/config/next.config.mjs)**: Eliminates framework disclosure and pins compute to Mumbai.
-5. **[Edge Middleware](src/middleware.ts)**: Injects dynamic CSP nonces and enforces strict CORS scoping.
-6. **[Safe Server Actions](src/server/lib/safe-action.ts)**: Reusable wrapper adding Zod validation and rate limiting.
-7. **[Cashfree Webhook Handler](src/server/lib/cashfree-webhook.ts)**: HMAC-SHA256 signature verification and idempotent processing.
-
----
-
-## 📬 Candidate Notes & Reflection
-
-This assessment demonstrates how passive, authorized telemetry can uncover substantive optimization opportunities without triggering disruption. Implementing the recommended fixes will enhance Cynbit’s defensive security baseline, protect payment and recruitment workflows, and reduce dynamic page latency for Indian users by over **85%**.
-
-Ready for review on the [Cynbit Candidate Portal](https://www.cynbit.in/candidate/cmvxlxwlp000208l7tz276p4e).
+This audit was conducted in strict compliance with Cynbit's assessment instructions:
+*"Only passive and authorized testing is permitted. Do not attempt to exploit, disrupt, overload, or gain unauthorized access to any Cynbit system."*  
+All data was gathered exclusively through standard read-only HTTP GET/HEAD requests and public DNS records.
