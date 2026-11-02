@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "audit:passive": "node tools/passive-audit-collector.mjs",
+    "audit:python": "python scripts/passive_audit.py",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
